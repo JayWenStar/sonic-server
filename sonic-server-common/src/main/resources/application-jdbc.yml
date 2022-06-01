@@ -3,11 +3,11 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     # 格式 jdbc:mysql://{mysql ip地址}:{mysql 端口}/{数据库名}
-    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:sonic}?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&autoReconnect=true&serverTimezone=GMT%2b8
+    url: jdbc:mysql://${MYSQL_HOST:81.70.118.76}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:sonic-test}?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&autoReconnect=true&serverTimezone=GMT%2b8
     # mysql账号
-    username: ${MYSQL_USERNAME:root}
+    username: ${MYSQL_USERNAME:sonic-test}
     # mysql，密码
-    password: ${MYSQL_PASSWORD:Sonic!@#123}
+    password: ${MYSQL_PASSWORD:mimajiushi}
     initialization-mode: always
     schema:
       - classpath:data.sql

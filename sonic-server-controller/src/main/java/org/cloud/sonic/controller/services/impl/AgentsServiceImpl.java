@@ -188,7 +188,7 @@ public class AgentsServiceImpl extends SonicServiceImpl<AgentsMapper, Agents> im
     }
 
     @Override
-    public void correctionStatus() {
+    public void correctionAllAgentStatus() {
         List<Agents> agentsList = findAgents();
         String msg = "OK";
         String res = "";
@@ -205,6 +205,24 @@ public class AgentsServiceImpl extends SonicServiceImpl<AgentsMapper, Agents> im
             if (!msg.equals(res)) {
                 offLine(agents);
             }
+        }
+    }
+
+    @Transactional
+    @Override
+    public void correctionAgentStatusById(int agentId) {
+        Agents agents = getById(agentId);
+        boolean online = checkOnline(agents);
+        if (online) {
+            agents.setStatus(AgentStatus.ONLINE);
+            devicesService.correctionDevicesStatusByAgentId(agentId);
+            save(agents);
+        } else {
+            if (AgentStatus.OFFLINE == agents.getStatus()) {
+                agents.setStatus(AgentStatus.OFFLINE);
+                offLine(agents);
+            }
+            // if S2AE, return
         }
     }
 

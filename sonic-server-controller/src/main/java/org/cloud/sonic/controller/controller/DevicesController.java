@@ -179,4 +179,12 @@ public class DevicesController {
     public RespModel<String> delete(@RequestParam(name = "id") int id) {
         return devicesService.delete(id);
     }
+
+    @WebAspect
+    @ApiOperation(value = "校准设备的在线状态")
+    @PostMapping("/correctionDevicesStatusById")
+    public RespModel<String> correctionDevicesStatusById(@RequestParam(name = "id") int id) {
+        devicesService.correctionDevicesStatusById(id);
+        return new RespModel<>(RespEnum.HANDLE_OK);
+    }
 }

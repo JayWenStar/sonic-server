@@ -23,6 +23,7 @@ import org.cloud.sonic.common.http.RespModel;
 import org.cloud.sonic.common.models.domain.Devices;
 import org.cloud.sonic.common.models.http.DeviceDetailChange;
 import org.cloud.sonic.common.models.http.UpdateDeviceImg;
+import org.cloud.sonic.common.models.interfaces.AgentStatus;
 
 import java.io.IOException;
 import java.util.List;
@@ -69,9 +70,24 @@ public interface DevicesService extends IService<Devices> {
     RespModel<String> delete(int id);
 
     /**
-     * 校准所有设备的离线状态（如果设备不在）
+     * 校准所有设备的离线状态
+     * 会从agent获取设备的真实状态，然后更新
      */
     CompletableFuture<Boolean> correctionAllDevicesStatus();
+
+    /**
+     * 校准指定agent下所有的设备状态
+     *
+     * @param agentId agent的id
+     */
+    void correctionDevicesStatusByAgentId(int agentId);
+
+    /**
+     * 校准指定设备的状态
+     *
+     * @param deviceId 设备id
+     */
+    void correctionDevicesStatusById(int deviceId);
 
     List<Devices> findByAgentForCabinet(int agentId);
 

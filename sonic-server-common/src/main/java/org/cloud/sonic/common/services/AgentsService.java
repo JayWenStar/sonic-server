@@ -73,9 +73,17 @@ public interface AgentsService extends IService<Agents> {
     Agents findBySecretKey(String secretKey);
 
     /**
-     * 校准agent在线状态，只应该在server端使用
+     * 校准所有agent在线状态，只应该在server端使用
+     * 如果校验到agent不在线，那么对应agent的设备也会下线
      */
-    void correctionStatus();
+    void correctionAllAgentStatus();
+
+    /**
+     * 校准单个agent的在线状态，如果agent是从其它状态变成在线or离线，则对应agent的设备也会重新检查一遍
+     *
+     * @param agentId agent的id
+     */
+    void correctionAgentStatusById(int agentId);
 
     boolean checkOnline(Agents agents);
 

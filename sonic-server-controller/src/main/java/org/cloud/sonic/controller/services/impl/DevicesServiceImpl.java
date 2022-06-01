@@ -309,48 +309,71 @@ public class DevicesServiceImpl extends SonicServiceImpl<DevicesMapper, Devices>
     public CompletableFuture<Boolean> correctionAllDevicesStatus() {
         List<Devices> devicesList = list();
         return CompletableFuture.supplyAsync(() -> {
-            for (Devices devices : devicesList) {
-                Agents agent = agentsService.findById(devices.getAgentId());
-                Address address = new Address(agent.getHost() + "", agent.getRpcPort());
-                RpcContext.getContext().setObjectAttachment("address", address);
-                String status;
-                try {
-                    status = agentsClientService.getDeviceStatus(devices.getUdId(), devices.getPlatform());
-                } catch (Exception e) {
-                    // log.error("调用异常",e);
-                    agentsService.offLine(agent, AgentStatus.S2AE);
-                    continue;
-                }
-                // agent收到的status
-                switch (status) {
-                    case DeviceStatus.OFFLINE:
-                        // 如果设备不在agent连接且出于这些状态，那么都更新成offline
-                        switch (devices.getStatus()) {
-                            case DeviceStatus.DEBUGGING:
-                            case DeviceStatus.TESTING:
-                            case DeviceStatus.ERROR:
-                            case DeviceStatus.ONLINE:
-                                devices.setStatus(DeviceStatus.OFFLINE);
-                                save(devices);
-                                break;
-                            case DeviceStatus.OFFLINE:
-                                break;
-                        }
-                        break;
-                    // 如果是下面这些状态，就直接更新
-                    case DeviceStatus.DEBUGGING:
-                    case DeviceStatus.TESTING:
-                    case DeviceStatus.ONLINE:
-                        devices.setStatus(status);
-                        save(devices);
-                        break;
-                    // 如果是以下状态，什么都不需要做
-                    case DeviceStatus.UNAUTHORIZED:
-                        break;
-                }
-            }
+            updateStatus(null, devicesList);
             return true;
         }, DubboThreadPool.get());
+    }
+
+    /**
+     * 更新设备状态
+     *
+     * @param targetAgents  不为null时，每台设备都从这个agent调度；为null时，从设备agentId自动获取
+     * @param devicesList   设备list
+     */
+    private void updateStatus(Agents targetAgents, List<Devices> devicesList) {
+        for (Devices devices : devicesList) {
+            Agents agent = targetAgents;
+            if (targetAgents == null) {
+                agent = agentsService.findById(devices.getAgentId());
+            }
+            Address address = new Address(agent.getHost() + "", agent.getRpcPort());
+            RpcContext.getContext().setObjectAttachment("address", address);
+            String status;
+            try {
+                status = agentsClientService.getDeviceStatus(devices.getUdId(), devices.getPlatform());
+            } catch (Exception e) {
+                devices.setStatus(DeviceStatus.OFFLINE);
+                save(devices);
+                continue;
+            }
+            // agent收到的status
+            switch (status) {
+                case DeviceStatus.OFFLINE:
+                    // 如果设备不在agent连接且出于这些状态，那么都更新成offline
+                    switch (devices.getStatus()) {
+                        case DeviceStatus.DEBUGGING:
+                        case DeviceStatus.TESTING:
+                        case DeviceStatus.ERROR:
+                        case DeviceStatus.ONLINE:
+                            devices.setStatus(DeviceStatus.OFFLINE);
+                            save(devices);
+                            break;
+                        case DeviceStatus.OFFLINE:
+                            break;
+                    }
+                    break;
+                // 如果是下面这些状态，就直接更新
+                case DeviceStatus.DEBUGGING:
+                case DeviceStatus.TESTING:
+                case DeviceStatus.ONLINE:
+                    devices.setStatus(status);
+                    save(devices);
+                    break;
+                // 如果是以下状态，什么都不需要做
+                case DeviceStatus.UNAUTHORIZED:
+                    break;
+            }
+        }
+    }
+
+    @Override
+    public void correctionDevicesStatusByAgentId(int agentId) {
+        updateStatus(agentsService.findById(agentId), lambdaQuery().eq(Devices::getAgentId, agentId).list());
+    }
+
+    @Override
+    public void correctionDevicesStatusById(int deviceId) {
+        updateStatus(null, lambdaQuery().eq(Devices::getId, deviceId).list());
     }
 
     @Override

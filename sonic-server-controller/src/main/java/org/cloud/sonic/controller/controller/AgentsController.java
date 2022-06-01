@@ -106,10 +106,21 @@ public class AgentsController {
     }
 
     @WebAspect
-    @ApiOperation(value = "校准agent的在线状态", notes = "等心跳中断可能有20s延迟（取决于zk配置），这个接口某些情况能更快速更新状态")
-    @GetMapping("/correction/status")
-    public RespModel<String> correctionStatus() {
-        agentsService.correctionStatus();
+    @ApiOperation(
+            value = "校准所有agent的在线状态，agent不在线则设备也下线",
+            notes = "等心跳中断可能有20s延迟（取决于zk配置），这个接口某些情况能更快速更新状态"
+    )
+    @PostMapping("/correctionAllAgentStatus")
+    public RespModel<String> correctionAllAgentStatus() {
+        agentsService.correctionAllAgentStatus();
+        return new RespModel<>(RespEnum.HANDLE_OK);
+    }
+
+    @WebAspect
+    @ApiOperation(value = "校准单个agent的在线状态，agent不在线则设备也下线，顺带会校准agent所属的设备状态")
+    @PostMapping("/correctionAgentStatusById")
+    public RespModel<String> correctionAgentStatusById(@RequestParam(name = "id") int id) {
+        agentsService.correctionAgentStatusById(id);
         return new RespModel<>(RespEnum.HANDLE_OK);
     }
 
